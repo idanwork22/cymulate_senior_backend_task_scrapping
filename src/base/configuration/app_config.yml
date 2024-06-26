@@ -3,6 +3,6 @@ logger:
 
 
 mongo_db:
-  connection_url: ""
-  database: ""
-  collection: ""
+  connection_url: "mongodb://localhost:27017"
+  database: "cymulate_db"
+  collection: "cymulate_collection"
