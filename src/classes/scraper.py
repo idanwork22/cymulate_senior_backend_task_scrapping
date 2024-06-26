@@ -30,6 +30,7 @@ class Scraper:
         urls = []
         response = requests.get(base_url)
         if response.status_code != 200:
+            self.update_failed_record(scrape_id=scrape_id)
             raise HTTPException(status_code=400, detail="Failed to retrieve the website")
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -44,7 +45,7 @@ class Scraper:
         self.update_record(scrape_id=scrape_id, urls=urls)
 
     def save_initial_record(self, base_url):
-        doc_id = str(hash(base_url+str(datetime.now())))
+        doc_id = str(hash(base_url + str(datetime.now())))
         scrape_id = self.mongo_class.insert_document({
             "_id": doc_id,
             "base_url": base_url,
@@ -61,6 +62,14 @@ class Scraper:
                                          {"$set": {
                                              "list_of_urls": urls,
                                              "status": "finished"
+                                         }})
+
+    def update_failed_record(self, scrape_id):
+        self.mongo_class.update_document(query=
+                                         {"_id": scrape_id},
+                                         new_values=
+                                         {"$set": {
+                                             "status": "failed"
                                          }})
 
     def get_all_scrapers_from_db(self):
