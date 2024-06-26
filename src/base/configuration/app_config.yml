@@ -6,3 +6,14 @@ mongo_db:
   connection_url: "mongodb://localhost:27017"
   database: "cymulate_db"
   collection: "cymulate_collection"
+
+
+APIRoutes:
+  Scrape:
+    prefix: /scrape
+    tag: Scrape website
+    routes:
+      Post:
+        StartScraping: /start_scraping
+      Get:
+        GetAllScrapes: /all

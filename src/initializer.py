@@ -1,8 +1,8 @@
-import FastAPI as FastAPI
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.routes import *
+
 
 def get_app():
     app = FastAPI()
@@ -14,4 +14,5 @@ def get_app():
         allow_headers=["*"],
     )
     # include all the routes
+    app.include_router(scrape_router)
     return app
