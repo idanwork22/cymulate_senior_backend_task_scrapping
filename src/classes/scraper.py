@@ -21,15 +21,16 @@ collection = db.results
 
 load_dotenv()
 
+
 class Scraper:
     def __init__(self):
         self.logger = LoguruLogger(__name__).get_logger(
         )
         self.mongo_config = Config().get_value('mongo_db')
         self.mongo_class = MongoDBClient(
-            connection_string= os.getenv('MONGO_CONNECTION_URL',self.mongo_config['database']),
-            database_name=os.getenv('MONGO_DB',self.mongo_config['database']),
-            collection_name=os.getenv('MONGO_COLLECTION',self.mongo_config['collection'])
+            connection_string=os.getenv('MONGO_CONNECTION_URL', self.mongo_config['database']),
+            database_name=os.getenv('MONGO_DB', self.mongo_config['database']),
+            collection_name=os.getenv('MONGO_COLLECTION', self.mongo_config['collection'])
         )
 
     def scrape_website(self, base_url, scrape_id):
