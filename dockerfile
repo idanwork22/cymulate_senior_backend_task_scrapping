@@ -17,4 +17,4 @@ EXPOSE 8000
 ENV MONGO_URI=mongodb://mongodb:27017/
 
 # Run the command to start the FastAPI server
-CMD ["uvicorn", "scraper:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "app"]

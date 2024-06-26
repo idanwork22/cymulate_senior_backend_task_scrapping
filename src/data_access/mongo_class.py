@@ -26,10 +26,20 @@ class MongoDBClient:
             self.db = self.client[self.database_name]
             self.collection = self.db[self.collection_name]
             self.logger.debug("Connection to MongoDB successful")
+            self.create_db()
+            self.create_collection()
             return True
         except errors.ServerSelectionTimeoutError as err:
             self.logger.debug(f"Connection failed: {err}")
             return False
+
+    def create_db(self):
+        if self.database_name not in self.client.list_database_names():
+            self.client[self.database_name].command("ping")
+
+    def create_collection(self):
+        if self.collection_name not in self.db.list_collection_names():
+            self.db.create_collection(self.collection_name)
 
     def insert_document(self, document):
         """
@@ -51,42 +61,10 @@ class MongoDBClient:
         :param new_values: Dictionary with the new values
         :return: Modified count
         """
-        result = self.collection.update_one(query,new_values)
+        result = self.collection.update_one(query, new_values)
         self.logger.debug(
             f"Updated document in {self.database_name}.{self.collection_name} with query {query} and new values {new_values}")
         return result.modified_count
-
-    def delete_documents(self, query):
-        """
-        Deletes documents in the collection based on the given query.
-
-        :param query: Dictionary query to delete documents
-        :return: Deleted count
-        """
-        result = self.collection.delete_many(query)
-        self.logger.debug(
-            f"Deleted {result.deleted_count} documents from {self.database_name}.{self.collection_name} with query {query}")
-        return result.deleted_count
-
-    def list_collections(self):
-        """
-        Lists all collections in the database.
-
-        :return: List of collection names
-        """
-        collections = self.db.list_collection_names()
-        self.logger.debug(f"Listed collections in {self.database_name}: {collections}")
-        return collections
-
-    def list_databases(self):
-        """
-        Lists all databases in the MongoDB server.
-
-        :return: List of database names
-        """
-        databases = self.client.list_database_names()
-        self.logger.debug(f"Listed databases: {databases}")
-        return databases
 
     def get_all_documents(self):
         """
