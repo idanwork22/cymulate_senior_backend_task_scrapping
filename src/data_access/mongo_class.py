@@ -41,6 +41,7 @@ class MongoDBClient:
         result = self.collection.insert_one(document)
         self.logger.debug(
             f"Inserted document into {self.database_name}.{self.collection_name}")
+        return result.inserted_id
 
     def update_document(self, query, new_values):
         """
@@ -50,7 +51,7 @@ class MongoDBClient:
         :param new_values: Dictionary with the new values
         :return: Modified count
         """
-        result = self.collection.update_one(query, {'$set': new_values})
+        result = self.collection.update_one(query,new_values)
         self.logger.debug(
             f"Updated document in {self.database_name}.{self.collection_name} with query {query} and new values {new_values}")
         return result.modified_count

@@ -14,16 +14,17 @@ scrape_api_config = Config().get_value('APIRoutes', 'Scrape')
 router = APIRouter(prefix=scrape_api_config['prefix'],
                    tags=[scrape_api_config['tag']])
 
+scraper = Scraper()
+
 
 @router.post(scrape_api_config['routes']['Post']['StartScraping'], status_code=200)
 async def start_scraping(request: ScrapeRequest):
-    scraper = Scraper(request.url)
-    scraper.save_initial_record()
-    threading.Thread(target=start_scraping, args=(scraper,)).start()
-
-    return {"scrape_id": str(scraper.scrape_id), "status": "in process"}
+    url = str(request.url)
+    scrape_id = scraper.save_initial_record(url)
+    threading.Thread(target=scraper.scrape_website, args=(url,scrape_id)).start()
+    return True
 
 
 @router.get(scrape_api_config['routes']['Get']['GetAllScrapes'])
 async def get_all_scrapes():
-    raise NotImplementedError
+    return scraper.get_all_scrapers_from_db()

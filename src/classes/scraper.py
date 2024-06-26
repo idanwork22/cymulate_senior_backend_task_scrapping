@@ -1,14 +1,13 @@
 # scraper.py
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, HttpUrl
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import requests
 import pymongo
 from datetime import datetime
-from bson.objectid import ObjectId
 
 from src.base import LoguruLogger
+from src.core.validation import ScrapeResponse
 from src.data_access.mongo_class import MongoDBClient
 
 app = FastAPI()
@@ -19,10 +18,7 @@ collection = db.results
 
 
 class Scraper:
-    def __init__(self, base_url: str):
-        self.base_url = base_url
-        self.urls = []
-        self.scrape_id = None
+    def __init__(self):
         self.logger = LoguruLogger(__name__).get_logger()
         self.mongo_class = MongoDBClient(
             connection_string="mongodb://localhost:27017",
@@ -30,8 +26,9 @@ class Scraper:
             collection_name="cymulate_collection"
         )
 
-    def scrape_website(self):
-        response = requests.get(self.base_url)
+    def scrape_website(self, base_url, scrape_id):
+        urls = []
+        response = requests.get(base_url)
         if response.status_code != 200:
             raise HTTPException(status_code=400, detail="Failed to retrieve the website")
 
@@ -41,23 +38,33 @@ class Scraper:
             href = link['href']
             parsed_url = urlparse(href)
             if parsed_url.scheme and parsed_url.netloc:
-                self.urls.append(href)
+                urls.append(href)
             else:
-                self.urls.append(urlparse(self.base_url).scheme + "://" + urlparse(self.base_url).netloc + href)
+                urls.append(urlparse(base_url).scheme + "://" + urlparse(base_url).netloc + href)
+        self.update_record(scrape_id=scrape_id, urls=urls)
 
-    def save_initial_record(self):
-        self.scrape_id = self.mongo_class.insert_document({
-            "base_url": self.base_url,
+    def save_initial_record(self, base_url):
+        doc_id = str(hash(base_url+str(datetime.now())))
+        scrape_id = self.mongo_class.insert_document({
+            "_id": doc_id,
+            "base_url": base_url,
             "execution_time": datetime.utcnow(),
             "list_of_urls": [],
             "status": "in process"
-        }).inserted_id
+        })
+        return doc_id
 
-    def update_record(self):
+    def update_record(self, scrape_id, urls):
         self.mongo_class.update_document(query=
-                                         {"_id": self.scrape_id},
+                                         {"_id": scrape_id},
                                          new_values=
                                          {"$set": {
-                                             "list_of_urls": self.urls,
+                                             "list_of_urls": urls,
                                              "status": "finished"
                                          }})
+
+    def get_all_scrapers_from_db(self):
+        result = self.mongo_class.get_all_documents()
+        for res in result:
+            res['_id'] = str(res['_id'])
+        return result
