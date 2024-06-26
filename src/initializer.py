@@ -2,10 +2,11 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.routes import *
-
+from src.base import Config
 
 def get_app():
     app = FastAPI()
+    app_config = Config.get_value('app')
 
     app.add_middleware(
         CORSMiddleware,
@@ -15,4 +16,4 @@ def get_app():
     )
     # include all the routes
     app.include_router(scrape_router)
-    return app
+    return app, app_config['host'], app_config['port']
