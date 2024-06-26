@@ -11,10 +11,7 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the application port
-EXPOSE 8000
-
-# Define environment variable
-ENV MONGO_URI=mongodb://mongodb:27017/
+EXPOSE 5002
 
 # Run the command to start the FastAPI server
 CMD ["python", "app"]

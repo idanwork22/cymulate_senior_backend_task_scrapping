@@ -1,4 +1,7 @@
 # scraper.py
+import os
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
@@ -6,7 +9,7 @@ import requests
 import pymongo
 from datetime import datetime
 
-from src.base import LoguruLogger
+from src.base import LoguruLogger, Config
 from src.core.validation import ScrapeResponse
 from src.data_access.mongo_class import MongoDBClient
 
@@ -16,14 +19,17 @@ client = pymongo.MongoClient("mongodb://mongodb:27017/")
 db = client.scraping_db
 collection = db.results
 
+load_dotenv()
 
 class Scraper:
     def __init__(self):
-        self.logger = LoguruLogger(__name__).get_logger()
+        self.logger = LoguruLogger(__name__).get_logger(
+        )
+        self.mongo_config = Config().get_value('mongo_db')
         self.mongo_class = MongoDBClient(
-            connection_string="mongodb://localhost:27017",
-            database_name="cymulate_db",
-            collection_name="cymulate_collection"
+            connection_string= os.getenv('MONGO_CONNECTION_URL',self.mongo_config['database']),
+            database_name=os.getenv('MONGO_DB',self.mongo_config['database']),
+            collection_name=os.getenv('MONGO_COLLECTION',self.mongo_config['collection'])
         )
 
     def scrape_website(self, base_url, scrape_id):
@@ -31,7 +37,7 @@ class Scraper:
         response = requests.get(base_url)
         if response.status_code != 200:
             self.update_failed_record(scrape_id=scrape_id)
-            raise HTTPException(status_code=400, detail="Failed to retrieve the website")
+            self.logger.error(f"Failed to retrieve the website: {base_url}")
 
         soup = BeautifulSoup(response.text, 'html.parser')
 
