@@ -1,4 +1,3 @@
-
 from pymongo import MongoClient, errors
 from src.base import LoguruLogger
 
@@ -41,8 +40,7 @@ class MongoDBClient:
         self.logger.info("Check if the documents already exists")
         result = self.collection.insert_one(document)
         self.logger.debug(
-                f"Inserted document into {self.database_name}.{self.collection_name}")
-
+            f"Inserted document into {self.database_name}.{self.collection_name}")
 
     def update_document(self, query, new_values):
         """
@@ -88,3 +86,13 @@ class MongoDBClient:
         databases = self.client.list_database_names()
         self.logger.debug(f"Listed databases: {databases}")
         return databases
+
+    def get_all_documents(self):
+        """
+        Retrieves all documents from the collection.
+
+        :return: List of documents
+        """
+        documents = list(self.collection.find())
+        self.logger.debug(f"Retrieved all documents from {self.database_name}.{self.collection_name}")
+        return documents
