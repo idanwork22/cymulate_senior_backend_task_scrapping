@@ -1,0 +1,8 @@
+logger:
+  level: DEBUG
+
+
+mongo_db:
+  connection_url: ""
+  database: ""
+  collection: ""
